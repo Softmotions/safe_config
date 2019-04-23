@@ -8,16 +8,16 @@ import 'package:yaml/yaml.dart';
 /// of an instance of this type.
 abstract class Configuration {
   /// Default constructor.
-  Configuration();
+  Configuration({this.allowExtraneousKeys = false});
 
   bool allowExtraneousKeys = false;
 
-  Configuration.fromMap(Map<dynamic, dynamic> map, {this.allowExtraneousKeys}) {
+  Configuration.fromMap(Map<dynamic, dynamic> map, {this.allowExtraneousKeys = false}) {
     _read(reflect(this).type, map);
   }
 
   /// [contents] must be YAML.
-  Configuration.fromString(String contents, {this.allowExtraneousKeys}) {
+  Configuration.fromString(String contents, {this.allowExtraneousKeys = false}) {
     final config = loadYaml(contents) as Map<dynamic, dynamic>;
     _read(reflect(this).type, config);
   }
