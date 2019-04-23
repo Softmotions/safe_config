@@ -10,12 +10,14 @@ abstract class Configuration {
   /// Default constructor.
   Configuration();
 
-  Configuration.fromMap(Map<dynamic, dynamic> map) {
+  bool allowExtraneousKeys = false;
+
+  Configuration.fromMap(Map<dynamic, dynamic> map, {this.allowExtraneousKeys}) {
     _read(reflect(this).type, map);
   }
 
   /// [contents] must be YAML.
-  Configuration.fromString(String contents) {
+  Configuration.fromString(String contents, {this.allowExtraneousKeys}) {
     final config = loadYaml(contents) as Map<dynamic, dynamic>;
     _read(reflect(this).type, config);
   }
@@ -23,7 +25,8 @@ abstract class Configuration {
   /// Opens a file and reads its string contents into this instance's properties.
   ///
   /// [file] must contain valid YAML data.
-  Configuration.fromFile(File file) : this.fromString(file.readAsStringSync());
+  Configuration.fromFile(File file, {bool allowExtraneousKeys = false})
+    : this.fromString(file.readAsStringSync(), allowExtraneousKeys: allowExtraneousKeys);
 
   /// Subclasses may override this method to read from something that is not a Map.
   ///
@@ -89,10 +92,12 @@ abstract class Configuration {
           reflectedThis.setField(property.simpleName, value);
         });
 
-      final unexpectedKeys = (object as Map).keys.where((key) => !properties.keys.contains(key));
-      if (unexpectedKeys.isNotEmpty) {
-        throw ConfigurationException(runtimeType,
-          "Extraneous keys found: '${expandErrorKeys(unexpectedKeys)}'");
+      if (!allowExtraneousKeys) {
+        final unexpectedKeys = (object as Map).keys.where((key) => !properties.keys.contains(key));
+        if (unexpectedKeys.isNotEmpty) {
+          throw ConfigurationException(runtimeType,
+            "Extraneous keys found: '${expandErrorKeys(unexpectedKeys)}'");
+        }
       }
     }
 
